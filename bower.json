@@ -1,0 +1,27 @@
+{
+  "name": "oscy.js-page",
+  "version": "0.1.0",
+  "homepage": "https://github.com/mach3/oscy.js",
+  "authors": [
+    "mach3 <http://github.com/mach3>"
+  ],
+  "description": "Just another instrument by Oscillator",
+  "main": "index.html",
+  "moduleType": [
+    "globals"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "1",
+    "jquery-easing-original": "~1.3.1",
+    "oscy.js": "mach3/oscy.js#~0.1.0"
+  }
+}

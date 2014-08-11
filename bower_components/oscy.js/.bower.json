@@ -1,0 +1,33 @@
+{
+  "name": "oscy.js",
+  "version": "0.1.0",
+  "authors": [
+    "mach3 <http://github.com/mach3>"
+  ],
+  "moduleType": [
+    "globals"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery-easing-original": "~1.3.1",
+    "jquery": "1"
+  },
+  "homepage": "https://github.com/mach3/oscy.js",
+  "_release": "0.1.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.1.0",
+    "commit": "d47a995ddd54e5b8775be8bfd7a8c632e7b9063d"
+  },
+  "_source": "git://github.com/mach3/oscy.js.git",
+  "_target": "~0.1.0",
+  "_originalSource": "mach3/oscy.js",
+  "_direct": true
+}
