@@ -6,9 +6,24 @@ module.exports = function(grunt){
 		{data: grunt.file.readJSON("package.json")}
 	);
 
-	console.log(banner);
 
 	grunt.initConfig({
+		concat: {
+			build: {
+				options: {banner: banner},
+				files: {
+					"dist/oscy.js": "src/oscy.js"
+				}
+			}
+		},
+		uglify: {
+			build: {
+				options: {banner: banner},
+				files: {
+					"dist/oscy.min.js": "src/oscy.js"
+				}
+			}
+		},
 		connect: {
 			dev: {
 				options: {

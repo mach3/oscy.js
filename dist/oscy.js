@@ -1,3 +1,13 @@
+/*!
+ * Oscy.js
+ * -------
+ * Just another instrument by Oscillator on Web Audio API
+ * 
+ * @version 0.1.0 (2014/08/11)
+ * @author mach3 <http://github.com/mach3>
+ * @license MIT
+ * @require jquery#1, jquery-easing
+ */
 (function($, global){
 
     var oscy = {};
