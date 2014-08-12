@@ -1,7 +1,7 @@
 {
   "name": "oscy.js",
-  "version": "0.1.1",
-  "description": "",
+  "version": "0.1.2",
+  "description": "Just another instrument by Oscillator on Web Audio API",
   "main": "dist/oscy.js",
   "dependencies": {
   },

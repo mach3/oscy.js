@@ -1,6 +1,6 @@
 {
   "name": "oscy.js",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "authors": [
     "mach3 <http://github.com/mach3>"
   ],
@@ -20,11 +20,11 @@
     "jquery": "1"
   },
   "homepage": "https://github.com/mach3/oscy.js",
-  "_release": "0.1.1",
+  "_release": "0.1.2",
   "_resolution": {
     "type": "version",
-    "tag": "0.1.1",
-    "commit": "1eae18509ab09886595053e8f487a77b32959f08"
+    "tag": "v0.1.2",
+    "commit": "84f6a19d05ca74ca7c8da3affbfea941f271da63"
   },
   "_source": "git://github.com/mach3/oscy.js.git",
   "_target": "~0.1.0",
