@@ -2,6 +2,19 @@
 
     var oscy = {};
 
+    /**
+     * Check Support
+     * -------------
+     */
+    global.AudioContext = global.AudioContext || global.webkitAudioContext || null;
+    if(! global.AudioContext){
+        throw new Error("AudioContext is not supported");
+    }
+    global.AudioContext.prototype.createGain = global.AudioContext.prototype.createGain 
+    || global.AudioContext.prototype.createGainNode;
+
+    oscy.context = new AudioContext();
+
 
     /**
      * Utilities
@@ -48,22 +61,33 @@
          */
         last: function(list){
             return list[list.length - 1];
+        },
+
+        /**
+         * Get array of value referenced by key from collection
+         * @param {Array} list
+         * @param {String} key
+         * @returns {Array}
+         */
+        columns: function(list, key){
+            var res = [];
+            u.toArray(list).forEach(function(item){
+                res.push(item[key]);
+            });
+            return res;
+        },
+
+        /**
+         * Return formatted string
+         * @param {String...} template, args1, args2 ...
+         */
+        format: function(){
+            var args = u.toArray(arguments);
+            return args.shift().replace(/%s/g, function(){
+                return args.length ? args.shift() : "";
+            });
         }
     };
-
-
-    /**
-     * Check Support
-     * -------------
-     */
-    global.AudioContext = global.AudioContext || global.webkitAudioContext || null;
-    if(! global.AudioContext){
-        throw new Error("AudioContext is not supported");
-    }
-    global.AudioContext.prototype.createGain = global.AudioContext.prototype.createGain 
-    || global.AudioContext.prototype.createGainNode;
-
-    oscy.context = new AudioContext();
 
 
     /**
@@ -137,14 +161,16 @@
         defaults: {
             autoplay: false,
             type: "sine",
-            frequency: 0,
-            frequencyMax: 0,
-            frequencyMin: 0,
+            frequency: 440,
+            frequencyMax: 440 * 2,
+            frequencyMin: 440 / 2,
             detune: 0,
-            detuneMin: 0,
-            detuneMax: 0,
+            detuneMin: -500,
+            detuneMax: 500,
             gain: 0
         },
+
+        id: null,
 
         initialized: false,
         context: null,
@@ -156,22 +182,13 @@
         /**
          * @constructor
          */
-        _construct: function(options){
+        _construct: function(id, options){
             // initialize
+            this.id = id;
             this.config(options);
             this.context = oscy.context;
             this.osc = this.context.createOscillator();
             this.gain = this.context.createGain();
-
-            // get initial values
-            this.config({
-                frequency: this.osc.frequency.defaultValue,
-                frequencyMax: this.osc.frequency.defaultValue + 500,
-                frequencyMin: this.osc.frequency.defaultValue - 500,
-                detune: this.osc.detune.defaultValue,
-                detuneMin: this.osc.detune.defaultValue - 3000,
-                detuneMax: this.osc.detune.defaultValue + 1000
-            });
 
             // connection
             this.osc.connect(this.gain);
@@ -199,7 +216,7 @@
          * Stop to sound
          */
         stop: function(){
-            this.osc.stop();
+            this.osc.stop(0);
             return this;
         },
 
@@ -358,7 +375,7 @@
          * @returns {String}
          */
         getColor: function(pos){
-            var i = parseInt(pos.centerY * pos.x * 360, 10);
+            var i = parseInt(pos.x * 360, 10);
             return "hsl(" + i + ", 100%, 50%)";
         },
 
@@ -390,7 +407,7 @@
                 "border-radius": "100%",
                 "width": 1,
                 "height": 1,
-                "transition": "all 1s ease 0"
+                "transition": "all 2s ease 0"
             })
             .on("transitionend", onComplete)
             .appendTo(this.base);
@@ -431,7 +448,6 @@
             type: "sine",
             effect: "easeInOutBounce",
             backgroundImage: [
-                "url(",
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWgAAAAICAYAAADUZmU7AAABMklEQVRoQ+",
                 "1a7QqDMAyssL3/A2/gBzK14tJerqwz3A9BXZKq6d2Sa4cxpTE9UtqO5+F8uY9cI7bn2D/0fc+v9Tleh/",
                 "PlnnWN2LaMxY67J/cuCSUnR48EM0lifOd39cKXgRyZoYxW0OfY0VtC2fl38kNn7IDEQmzzZx5E0PXp9n",
@@ -439,7 +455,6 @@
                 "THkd16lSYaM64q6NA9sCro0OkVQZuaVct/YIZkGV8RdGgEi6BDp1cELYL+3j+h0kJDEUoadGUfL4IWQR",
                 "sSCANhxpdcgpIGLQ36chsA2ap0WEUSQYugRdCeLT3/Io9I4giNYBF06PRK4pDEIYnDt6m25cquv3KfAP",
                 "kWqGScetsTAAAAAElFTkSuQmCC",
-                ")"
             ].join("")
         },
 
@@ -465,7 +480,7 @@
                 "height": "100%",
                 "z-index":  2,
                 "-webkit-user-select": "none",
-                "background-image": this.config("backgroundImage"),
+                "background-image": u.format("url(%s)", this.config("backgroundImage")),
                 "background-repeat": "no-repeat",
                 "background-size": "100% 8px",
                 "background-position": "left center",
@@ -494,32 +509,84 @@
          * @param {Event} e
          * @returns {Object}
          */
-        getPosition: function(e){
-            var pos;
+        touches: function(e){
+            var pos, offset, size, push;
+
             e = e.originalEvent || e;
 
-            if(/^touch/.test(e.type)){
-                if(! e.touches.length){
-                    return null;
-                }
-                e = e.touches[0];
-                (function(offset){
-                    e.offsetX = e.pageX - offset.left;
-                    e.offsetY = e.pageY - offset.top;
-                }(this.panel.offset()));
-            }
-
-            pos = {
-                offsetX: e.offsetX,
-                offsetY: e.offsetY,
-                x: e.offsetX / this.panel.outerWidth(),
-                y: e.offsetY / this.panel.outerHeight()
+            pos = [];
+            offset = this.panel.offset();
+            size = {
+                width: this.panel.outerWidth(),
+                height: this.panel.outerHeight()
+            };
+            push = function(id, offsetX, offsetY){
+                pos.push({
+                    id: id,
+                    offsetX: offsetX,
+                    offsetY: offsetY,
+                    x: offsetX / size.width,
+                    y: offsetY / size.height
+                })
             };
 
-            pos.centerX = 1 - (Math.abs(pos.x - 0.5) * 2);
-            pos.centerY = 1 - (Math.abs(pos.y - 0.5) * 2);
+            if(/^touch/.test(e.type)){
+                $.each(e.changedTouches, function(i, touch){
+                    push(touch.identifier, touch.pageX - offset.left, touch.pageY - offset.top);
+                });
+            } else {
+                push(null, e.offsetX, e.offsetY);
+            }
 
             return pos;
+        },
+
+        /**
+         * Get sound object by id
+         * @param {Integer} id
+         * @returns {oscy.Sound}
+         */
+        getSoundById: function(id){
+            var sound = this.sound.filter(function(s){
+                return s.id === id;
+            });
+            return sound.length ? sound[0] : null;
+        },
+
+        /**
+         * Fadeout and remove sound by id list
+         * Return count of the removed
+         * @param {Array} ids
+         * @returns {Integer}
+         */
+        remove: function(ids){
+            var my, done;
+
+            my = this;
+            done = 0;
+            this.sound.forEach(function(sound, i){
+                if(ids.indexOf(sound.id) < 0){
+                    return;
+                }
+                sound.fade({gain: 0}, my.config("effect"), 3000)
+                .done(sound.destruct.bind(sound));
+                my.sound.splice(i);
+                done += 1;
+            });
+            return done;
+        },
+
+        /**
+         * Remove unused sound, return count of the removed
+         * @param {Event} e
+         * @returns {Integer}
+         */
+        removeGarbage: function(e){
+            e = e.originalEvent || e;
+            if(!! e.touches && ! e.touches.length && this.sound.length){
+                return this.remove(u.columns(this.sound, "id"));
+            }
+            return 0;
         },
 
         /**
@@ -535,8 +602,8 @@
                 return min + (max - min) * rate;
             };
             sound.config({
-                detune: getValue(o.detuneMin, o.detuneMax, pos.x),
-                frequency: getValue(o.frequencyMin, o.frequencyMax, pos.centerY)
+                detune: 1 - getValue(o.detuneMin, o.detuneMax, pos.y),
+                frequency: getValue(o.frequencyMin, o.frequencyMax, pos.x)
             });
             return this;
         },
@@ -556,18 +623,16 @@
          * @param {Event} e
          */
         onStart: function(e){
-            var pos, sound;
+            var my = this;
 
             e.preventDefault();
-
-            pos = this.getPosition(e);
-            sound = new oscy.Sound({gain: 0.5, type:this.config("type")});
-
-            this.updateSound(sound, pos);
-            this.sound.push(sound);
-            sound.start();
-
-            this.showRipple(pos);
+            this.touches(e).forEach(function(p){
+                var sound = new oscy.Sound(p.id, {gain: 0.5, type: my.config("type")});
+                my.updateSound(sound, p);
+                my.sound.push(sound);
+                sound.start();
+                my.showRipple(p);
+            });
         },
 
         /**
@@ -575,15 +640,16 @@
          * @param {Event} e
          */
         onMove: function(e){
-            var pos;
+            var my = this;
 
             e.preventDefault();
-
-            if(this.sound.length){
-                pos = this.getPosition(e);
-                this.updateSound(u.last(this.sound), pos);
-                this.showRipple(pos);
-            }
+            this.touches(e).forEach(function(p){
+                var sound;
+                if(sound = my.getSoundById(p.id)){
+                    my.updateSound(sound, p);
+                    my.showRipple(p);
+                }
+            });
         },
 
         /**
@@ -591,13 +657,10 @@
          * @param {Event} e
          */
         onStop: function(e){
-            var sound;
-
+            var my = this;
             e.preventDefault();
-
-            sound = this.sound.shift();
-            sound.fade({gain: 0}, this.config("effect"), 3000)
-            .done(sound.destruct.bind(sound));
+            this.remove(u.columns(this.touches(e), "id"));
+            this.removeGarbage(e);
         }
 
     });
@@ -607,7 +670,6 @@
      * Exports
      * -------
      */
-    global.oscy = oscy;
-
+    global.Oscy = oscy.Composer;
 
 }(jQuery, this));

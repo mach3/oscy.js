@@ -14,7 +14,7 @@ Just another instrument by Oscillator on Web Audio API
 
 	<script>
 
-	new oscy.Composer("#oscy", {
+	new Oscy("#oscy", {
 		/* options */
 	});
 
