@@ -3,7 +3,7 @@
  * -------
  * Just another instrument by Oscillator on Web Audio API
  * 
- * @version 0.1.1 (2014/08/12)
+ * @version 0.1.2 (2014/08/12)
  * @author mach3 <http://github.com/mach3>
  * @license MIT
  * @require jquery#1, jquery-easing
@@ -457,6 +457,7 @@
             rippleBaseColor: "#000",
             type: "sine",
             effect: "easeInOutBounce",
+            reverb: 1500,
             backgroundImage: [
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWgAAAAICAYAAADUZmU7AAABMklEQVRoQ+",
                 "1a7QqDMAyssL3/A2/gBzK14tJerqwz3A9BXZKq6d2Sa4cxpTE9UtqO5+F8uY9cI7bn2D/0fc+v9Tleh/",
@@ -548,7 +549,7 @@
                 push(null, e.offsetX, e.offsetY);
             }
 
-            return pos;
+            return pos.slice(0, 3);
         },
 
         /**
@@ -574,14 +575,17 @@
 
             my = this;
             done = 0;
+
             this.sound.forEach(function(sound, i){
-                if(ids.indexOf(sound.id) < 0){
-                    return;
+                if(ids.indexOf(sound.id) >= 0){
+                    sound.fade({gain: 0}, my.config("effect"), my.config("reverb"))
+                    .done(sound.destruct.bind(sound));
+                    // splice
+                    my.sound = my.sound.filter(function(s){
+                        return s.id !== sound.id;
+                    });
+                    done += 1;
                 }
-                sound.fade({gain: 0}, my.config("effect"), 3000)
-                .done(sound.destruct.bind(sound));
-                my.sound.splice(i);
-                done += 1;
             });
             return done;
         },
